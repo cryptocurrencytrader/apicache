@@ -421,11 +421,16 @@ function ApiCache() {
       if (redis) {
         try {
           redis.hgetall(key, function (err, obj) {
-            if (!err && obj && obj.response) {
+            var jsonObject = null
+            try {
+              jsonObject = JSON.parse(obj.response)
+            } catch (e) { }
+
+            if (!err && obj && obj.response && jsonObject) {
               var elapsed = new Date() - req.apicacheTimer
               debug('sending cached (redis) version of', key, logDuration(elapsed))
 
-              return sendCachedResponse(req, res, JSON.parse(obj.response), middlewareToggle)
+              return sendCachedResponse(req, res, jsonObject, middlewareToggle)
             } else {
               return makeResponseCacheable(req, res, next, key, duration, strDuration, middlewareToggle)
             }
